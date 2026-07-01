@@ -13,6 +13,9 @@ import { tansuFramework } from "./frameworks/tansu";
 import { usignalFramework } from "./frameworks/inactive/uSignal";
 import { vueReactivityFramework } from "./frameworks/inactive/vueReactivity";
 import { xReactivityFramework } from "./frameworks/xReactivity";
+import { r3Framework } from "./frameworks/r3";
+import { r3SolidTargetFramework } from "./frameworks/r3-solid-target";
+import { solidNextFramework } from "./frameworks/solid-next";
 
 // Currently failing kairoBench tests
 // import { molWireFramework } from "./frameworks/molWire";
@@ -24,37 +27,43 @@ import { xReactivityFramework } from "./frameworks/xReactivity";
 // import { obyFramework } from "./frameworks/inactive/oby";
 
 export const frameworkInfo: FrameworkInfo[] = [
-  { framework: alienFramework, testPullCounts: true },
-  { framework: angularFramework2, testPullCounts: true },
-  { framework: compostateFramework, testPullCounts: true },
-  { framework: mobxFramework, testPullCounts: true },
-  { framework: preactSignalFramework, testPullCounts: true },
+  // { framework: alienFramework, testPullCounts: true },
+  // { framework: angularFramework2, testPullCounts: true },
+  // { framework: compostateFramework, testPullCounts: true },
+  // { framework: mobxFramework, testPullCounts: true },
+  // { framework: preactSignalFramework, testPullCounts: true },
   { framework: reactivelyFramework, testPullCounts: true },
+  { framework: r3Framework },
+  { framework: r3SolidTargetFramework },
+  { framework: solidNextFramework },
   { framework: sFramework },
   { framework: solidFramework }, // solid can't testPullCounts because batch executes all leaf nodes even if unread
-  { framework: potaFramework },
-  { framework: svelteFramework, testPullCounts: true },
-  { framework: tansuFramework, testPullCounts: true },
-  { framework: vueReactivityFramework, testPullCounts: true },
-  { framework: xReactivityFramework, testPullCounts: true },
+  // { framework: potaFramework },
+  // { framework: svelteFramework, testPullCounts: true },
+  // { framework: tansuFramework, testPullCounts: true },
+  // { framework: vueReactivityFramework, testPullCounts: true },
+  // { framework: xReactivityFramework, testPullCounts: true },
 ];
 
 export const allFrameworks: FrameworkInfo[] = [
-  { framework: alienFramework, testPullCounts: true },
-  { framework: angularFramework2, testPullCounts: true },
-  { framework: compostateFramework, testPullCounts: true },
-  { framework: mobxFramework, testPullCounts: true },
+  // { framework: alienFramework, testPullCounts: true },
+  // { framework: angularFramework2, testPullCounts: true },
+  // { framework: compostateFramework, testPullCounts: true },
+  // { framework: mobxFramework, testPullCounts: true },
   // { framework: molWireFramework, testPullCounts: true },
   // { framework: obyFramework, testPullCounts: true },
-  { framework: preactSignalFramework, testPullCounts: true },
+  // { framework: preactSignalFramework, testPullCounts: true },
   { framework: reactivelyFramework, testPullCounts: true },
+  { framework: r3Framework },
+  { framework: r3SolidTargetFramework },
+  { framework: solidNextFramework },
   { framework: sFramework },
   { framework: solidFramework }, // solid can't testPullCounts because batch executes all leaf nodes even if unread
-  { framework: potaFramework },
-  { framework: svelteFramework, testPullCounts: true },
-  { framework: tansuFramework, testPullCounts: true },
+  // { framework: potaFramework },
+  // { framework: svelteFramework, testPullCounts: true },
+  // { framework: tansuFramework, testPullCounts: true },
   // { framework: tc39SignalsFramework, testPullCounts: true },
-  { framework: usignalFramework, testPullCounts: true },
-  { framework: vueReactivityFramework, testPullCounts: true },
-  { framework: xReactivityFramework, testPullCounts: true },
+  // { framework: usignalFramework, testPullCounts: true },
+  // { framework: vueReactivityFramework, testPullCounts: true },
+  // { framework: xReactivityFramework, testPullCounts: true },
 ];

@@ -10,7 +10,7 @@ import { nextTick } from "../util/asyncUtil";
 import { fastestTest } from "../util/benchRepeat";
 import { PerfResultCallback } from "../util/perfLogging";
 import { FrameworkInfo } from "../util/frameworkTypes";
-import { mol } from "./kairo/molBench";
+// import { mol } from "./kairo/molBench";
 
 const cases = [
   { name: "avoidablePropagation", fn: avoidablePropagation },
@@ -21,15 +21,17 @@ const cases = [
   { name: "repeatedObservers", fn: repeatedObservers },
   { name: "triangle", fn: triangle },
   { name: "unstable", fn: unstable },
-  { name: "molBench", fn: mol },
+  // { name: "molBench", fn: mol },
 ];
 
 export async function kairoBench(
   frameworkInfo: FrameworkInfo[],
   logPerfResult: PerfResultCallback,
+  shouldRun: (test: string) => boolean = () => true,
 ) {
+  const selectedCases = cases.filter(c => shouldRun(c.name));
   // warmup
-  for (const c of cases) {
+  for (const c of selectedCases) {
     for (const { framework } of frameworkInfo) {
       const iter = framework.withBuild(() => c.fn(framework));
 
@@ -47,7 +49,7 @@ export async function kairoBench(
   await nextTick();
 
   // actual benchmark
-  for (const c of cases) {
+  for (const c of selectedCases) {
     for (const { framework } of frameworkInfo) {
       const iter = framework.withBuild(() => {
         const iter = c.fn(framework);

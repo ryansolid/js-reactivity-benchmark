@@ -1,7 +1,6 @@
 // Inspired by https://github.com/solidjs/solid/blob/main/packages/solid/bench/bench.cjs
 
 import { nextTick } from "../util/asyncUtil";
-import { fastestTest } from "../util/benchRepeat";
 import { PerfResultCallback } from "../util/perfLogging";
 import { Computed, ReactiveFramework, Signal } from "../util/reactiveFramework";
 
@@ -13,43 +12,100 @@ type Reader = () => number;
 export async function sbench(
   framework: ReactiveFramework,
   logPerfResult: PerfResultCallback,
+  shouldRun: (test: string) => boolean = () => true,
 ) {
-  const createSignalsTime = await run(createSignals, COUNT, COUNT);
-  logPerfResult({
-    framework: framework.name,
-    test: "createSignals",
-    time: createSignalsTime,
-  });
+  if (shouldRun("createSignals")) {
+    const createSignalsTime = await run(createSignals, COUNT, COUNT);
+    logPerfResult({
+      framework: framework.name,
+      test: "createSignals",
+      time: createSignalsTime,
+    });
+  }
 
-  let createTotal = 0;
-  createTotal += await run(create0to1, COUNT, 0);
-  createTotal += await run(create1to1, COUNT, COUNT);
-  createTotal += await run(create2to1, COUNT / 2, COUNT);
-  createTotal += await run(create4to1, COUNT / 4, COUNT);
-  createTotal += await run(create1000to1, COUNT / 1000, COUNT);
-  createTotal += await run(create1to2, COUNT, COUNT / 2);
-  createTotal += await run(create1to4, COUNT, COUNT / 4);
-  createTotal += await run(create1to8, COUNT, COUNT / 8);
-  createTotal += await run(create1to1000, COUNT, COUNT / 1000);
-  logPerfResult({
-    framework: framework.name,
-    test: "createComputations",
-    time: createTotal,
-  });
+  const createTests = [
+    ["create0to1", create0to1, COUNT, 0],
+    ["create1to1", create1to1, COUNT, COUNT],
+    ["create2to1", create2to1, COUNT / 2, COUNT],
+    ["create4to1", create4to1, COUNT / 4, COUNT],
+    ["create1000to1", create1000to1, COUNT / 1000, COUNT],
+    ["create1to2", create1to2, COUNT, COUNT / 2],
+    ["create1to4", create1to4, COUNT, COUNT / 4],
+    ["create1to8", create1to8, COUNT, COUNT / 8],
+    ["create1to1000", create1to1000, COUNT, COUNT / 1000],
+  ] as const;
 
-  let updateTotal = 0;
-  updateTotal += await run(update1to1, COUNT * 4, 1);
-  updateTotal += await run(update2to1, COUNT * 2, 2);
-  updateTotal += await run(update4to1, COUNT, 4);
-  updateTotal += await run(update1000to1, COUNT / 250, 1000);
-  updateTotal += await run(update1to2, COUNT, 1);
-  updateTotal += await run(update1to4, COUNT, 1);
-  updateTotal += await run(update1to1000, COUNT, 1);
-  logPerfResult({
-    framework: framework.name,
-    test: "updateSignals",
-    time: updateTotal,
-  });
+  if (shouldRun("createComputations")) {
+    let createTotal = 0;
+    for (const [, fn, n, scount] of createTests) createTotal += await run(fn, n, scount);
+    logPerfResult({
+      framework: framework.name,
+      test: "createComputations",
+      time: createTotal,
+    });
+  }
+
+  for (const [name, fn, n, scount] of createTests) {
+    if (!shouldRun(name)) continue;
+    logPerfResult({
+      framework: framework.name,
+      test: name,
+      time: await run(fn, n, scount),
+    });
+  }
+
+  const updateTests = [
+    ["update1to1", update1to1, COUNT * 4, 1],
+    ["update2to1", update2to1, COUNT * 2, 2],
+    ["update4to1", update4to1, COUNT, 4],
+    ["update1000to1", update1000to1, COUNT / 250, 1000],
+    ["update1to2", update1to2, COUNT, 1],
+    ["update1to4", update1to4, COUNT, 1],
+    ["update1to1000", update1to1000, COUNT, 1],
+  ] as const;
+
+  if (shouldRun("updateSignals")) {
+    let updateTotal = 0;
+    for (const [, fn, n, scount] of updateTests) updateTotal += await run(fn, n, scount);
+    logPerfResult({
+      framework: framework.name,
+      test: "updateSignals",
+      time: updateTotal,
+    });
+  }
+
+  for (const [name, fn, n, scount] of updateTests) {
+    if (!shouldRun(name)) continue;
+    logPerfResult({
+      framework: framework.name,
+      test: name,
+      time: await run(fn, n, scount),
+    });
+  }
+
+  if (shouldRun("diagnosticEmptyBatch")) {
+    logPerfResult({
+      framework: framework.name,
+      test: "diagnosticEmptyBatch",
+      time: await run(diagnosticEmptyBatch, COUNT * 4, 0),
+    });
+  }
+
+  if (shouldRun("diagnosticWriteNoSubs")) {
+    logPerfResult({
+      framework: framework.name,
+      test: "diagnosticWriteNoSubs",
+      time: await run(diagnosticWriteNoSubs, COUNT * 4, 1),
+    });
+  }
+
+  if (shouldRun("diagnosticWriteSameNoSubs")) {
+    logPerfResult({
+      framework: framework.name,
+      test: "diagnosticWriteSameNoSubs",
+      time: await run(diagnosticWriteSameNoSubs, COUNT * 4, 1),
+    });
+  }
 
   async function run(
     fn: (n: number, sources: Signal<number>[]) => () => void,
@@ -86,7 +142,6 @@ export async function sbench(
           sources[i].read();
           sources[i].read();
         }
-
         start = performance.now();
 
         return fn(n, sources);
@@ -239,6 +294,36 @@ export async function sbench(
       for (let i = 0; i < n; i++) {
         framework.withBatch(() => {
           set1(i);
+        });
+      }
+    };
+  }
+
+  function diagnosticEmptyBatch(n: number, _sources: Signal<number>[]) {
+    return () => {
+      for (let i = 0; i < n; i++) {
+        framework.withBatch(empty);
+      }
+    };
+  }
+
+  function diagnosticWriteNoSubs(n: number, sources: Signal<number>[]) {
+    let { write: set1 } = sources[0];
+    return () => {
+      for (let i = 0; i < n; i++) {
+        framework.withBatch(() => {
+          set1(i);
+        });
+      }
+    };
+  }
+
+  function diagnosticWriteSameNoSubs(n: number, sources: Signal<number>[]) {
+    let { write: set1 } = sources[0];
+    return () => {
+      for (let i = 0; i < n; i++) {
+        framework.withBatch(() => {
+          set1(0);
         });
       }
     };

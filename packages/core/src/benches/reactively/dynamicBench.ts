@@ -24,8 +24,11 @@ export async function dynamicBench(
   frameworkInfo: FrameworkInfo[],
   logPerfResult: PerfResultCallback,
   testRepeats = 5,
+  shouldRun: (test: string) => boolean = () => true,
 ): Promise<void> {
   for (const config of perfTests) {
+    const testName = makeTitle(config) + (config.name ? ` (${config.name})` : "");
+    if (!shouldRun(testName)) continue;
     for (const frameworkTest of frameworkInfo) {
       const { framework } = frameworkTest;
       const { iterations, readFraction } = config;
@@ -54,7 +57,7 @@ export async function dynamicBench(
 
       logPerfResult({
         framework: framework.name,
-        test: makeTitle(config) + (config.name ? ` (${config.name})` : ""),
+        test: testName,
         time: timedResult.time,
       });
       verifyBenchResult(frameworkTest, config, timedResult);

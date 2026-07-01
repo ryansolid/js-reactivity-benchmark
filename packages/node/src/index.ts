@@ -22,7 +22,18 @@ function logPerfResult(result: PerfResult): void {
 
 async function main() {
   logLine(formatPerfResult(perfResultHeaders()));
-  await runTests(frameworkInfo, logPerfResult);
+  const tests = process.env.TESTS?.split(",").filter(Boolean);
+  const frameworks = process.env.FRAMEWORKS?.split(",").filter(Boolean);
+  const selectedFrameworks = frameworks
+    ? new Set(frameworks)
+    : undefined;
+  await runTests(
+    selectedFrameworks
+      ? frameworkInfo.filter(({ framework }) => selectedFrameworks.has(framework.name))
+      : frameworkInfo,
+    logPerfResult,
+    { tests },
+  );
 }
 
 main();
